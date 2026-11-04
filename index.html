@@ -1287,7 +1287,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <button class="d-close" type="button" id="shipClose" aria-label="Cancelar"><svg class="i"><use href="#ic-x"/></svg></button>
     </div>
     <div class="ship-opts">
-      <a class="btn btn-ink btn-block" id="shipPick" href="https://wa.me/529811701290" target="_blank" rel="noopener"><span>Pasar a buscar</span></a>
+      <a class="btn btn-ink btn-block" id="shipPick" href="https://wa.me/529811701290"><span>Pasar a buscar</span></a>
       <button class="btn btn-ink btn-block" id="shipHome" type="button"><span>A domicilio +$35</span></button>
     </div>
     <div class="field ship-addr" id="shipAddr" hidden>
@@ -1295,7 +1295,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <textarea id="fAddr" rows="3" autocomplete="street-address" placeholder="Calle, número, colonia y alguna referencia" required aria-describedby="fAddrErr"></textarea>
       <p class="field-err" id="fAddrErr" hidden>Escribe tu dirección para enviar el pedido.</p>
       <p class="ask-sum ship-total" id="shipTotal"></p>
-      <a class="btn btn-red btn-block" id="shipSend" href="https://wa.me/529811701290" target="_blank" rel="noopener"><svg class="i"><use href="#ic-wa"/></svg><span>Enviar por WhatsApp</span></a>
+      <a class="btn btn-red btn-block" id="shipSend" href="https://wa.me/529811701290"><svg class="i"><use href="#ic-wa"/></svg><span>Enviar por WhatsApp</span></a>
     </div>
   </div>
 </dialog>
@@ -1813,16 +1813,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   fAddr.addEventListener('input', function () { state.address = fAddr.value; fieldErr(fAddr, '#fAddrErr', false); save(); refreshLink(); });
   ship.addEventListener('click', function (e) { if (e.target === ship) ship.close(); });
   $('#shipClose').addEventListener('click', function () { ship.close(); });
-  function openWa(e, a) {
-    e.preventDefault();
-    var w = window.open(a.href, '_blank');
-    if (w) { w.opener = null; ship.close(); } else location.href = a.href;
-  }
-  $('#shipPick').addEventListener('click', function (e) { openWa(e, this); });
+  $('#shipPick').addEventListener('click', function () { ship.close(); });
   $('#shipHome').addEventListener('click', function () { $('#shipAddr').hidden = false; fAddr.focus(); });
   $('#shipSend').addEventListener('click', function (e) {
     if (!state.address.trim()) { e.preventDefault(); fieldErr(fAddr, '#fAddrErr', true); return; }
-    openWa(e, this);
+    ship.close();
   });
 
   $('#dClear').addEventListener('click', function () {
