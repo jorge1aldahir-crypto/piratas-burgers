@@ -2020,7 +2020,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       var tl = gsap.timeline({
         onUpdate: pin ? function () { setStep(tl.progress()); } : null,
         scrollTrigger: pin
-          ? { trigger: anat, start: 'top top', end: ctx.conditions.desk ? '+=170%' : '+=150%', pin: true, scrub: .8, anticipatePin: 1 }
+          ? { trigger: anat, start: 'top top', end: '+=70%', pin: true, scrub: .8, anticipatePin: 1 }
           : { trigger: '.anat-stage', start: 'top 80%', end: 'bottom 30%', scrub: .8 }
       });
       tl.to(aLayers, { y: function (i, el) { return +el.getAttribute('data-ex') || 0; }, duration: .6, ease: 'power2.inOut' }, 0)
