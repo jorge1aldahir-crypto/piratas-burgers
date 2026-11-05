@@ -583,6 +583,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .d-foot { padding: 18px 24px calc(18px + env(safe-area-inset-bottom, 0px)); border-top: 2px solid var(--paper-ink); background: var(--paper-2); }
 .d-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; font: 800 13px var(--f-cond); letter-spacing: .22em; text-transform: uppercase; }
 .d-total b { font: 400 40px/1 var(--f-display); letter-spacing: 0; }
+.d-closed { margin: 0 0 12px; padding: 10px 14px; border-radius: 15px; background: var(--paper-ink); color: var(--paper); font-size: 14px; font-weight: 600; line-height: 1.35; }
 .d-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; color: var(--paper-dim); font-size: 13px; }
 .d-meta button { min-height: 36px; padding: 0 6px; font: 800 12px var(--f-cond); letter-spacing: .16em; text-transform: uppercase; color: #C8000C; text-decoration: underline; text-underline-offset: 3px; }
 
@@ -1282,6 +1283,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     </div>
     <div class="d-foot">
       <div class="d-total"><span>Total</span><b id="dTotal">$0</b></div>
+      <p class="d-closed" id="dClosed" role="status" hidden></p>
       <button class="btn btn-red btn-block" id="dSend" type="button"><svg class="i"><use href="#ic-wa"/></svg><span>Enviar pedido por WhatsApp</span></button>
       <div class="d-meta"><span>Te confirmamos por WhatsApp · Precios en MXN</span><button type="button" id="dClear">Vaciar</button></div>
     </div>
@@ -1529,7 +1531,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   /* ---------- open / closed status ---------- */
   var SCHEDULE = { 0: [1110, 1380], 1: [1140, 1410], 2: [1140, 1410], 3: [1140, 1410], 4: [1140, 1410], 5: [1140, 1440], 6: [1140, 1440] };
   var DAYS = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  var shopClosed = false;
+  var ORDER_LEAD = 20; // minutos antes de abrir en que ya se reciben pedidos
+  var shopClosed = false, ordersFrom = false;
   function fmt(m) {
     var h = Math.floor(m / 60) % 24, mm = m % 60, suf = h >= 12 ? 'p.m.' : 'a.m.';
     var h12 = h % 12 === 0 ? 12 : h % 12;
@@ -1545,7 +1548,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     try {
       var t = nowMX(), s = SCHEDULE[t.day], open = t.mins >= s[0] && t.mins < s[1];
       var long, short, state, sub, tide = 0;
-      shopClosed = false;
+      shopClosed = false; ordersFrom = false;
       if (open) {
         long = 'Abierto ahora · hasta las ' + fmt(s[1]); short = 'Abierto ahora';
         state = 'Abierto ahora'; sub = 'Cerramos en ' + dur(s[1] - t.mins) + ' · ' + fmt(s[1]);
@@ -1558,7 +1561,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         long = 'Cerrado · abrimos mañana a las ' + fmt(n[0]); short = 'Abrimos mañana';
         state = 'Cerrado'; sub = 'Abrimos mañana a las ' + fmt(n[0]);
       }
-      if (!open) shopClosed = long;
+      if (!open) {
+        var today = t.mins < s[0], nextOpen = today ? s[0] : SCHEDULE[(t.day + 1) % 7][0];
+        var wait = today ? s[0] - t.mins : 1440 - t.mins + nextOpen;
+        shopClosed = long;
+        if (wait > ORDER_LEAD) ordersFrom = fmt(nextOpen - ORDER_LEAD);
+      }
       $$('.js-status').forEach(function (el) { el.classList.toggle('open', open); el.classList.toggle('closed', !open); });
       $$('.js-status-text').forEach(function (el) { el.textContent = el.hasAttribute('data-short') ? short : long; });
       var live = $('#live');
@@ -1671,6 +1679,16 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   var dockMain = $('#dockMain'), dockTxt = $('#dockTxt'), dockCnt = $('#dockCnt'), dockCart = $('.dock-cart');
   var dList = $('#dList'), dEmpty = $('#dEmpty'), dExtra = $('#dExtra'), dTotal = $('#dTotal'), dSend = $('#dSend');
 
+  function closedMsg() { return shopClosed + ' Recibimos pedidos desde las ' + ordersFrom; }
+  function syncSend() {
+    updateStatus();
+    var off = !count() || !!ordersFrom;
+    dSend.classList.toggle('is-disabled', off);
+    dSend.setAttribute('aria-disabled', off ? 'true' : 'false');
+    $('#dClosed').hidden = !ordersFrom;
+    $('#dClosed').textContent = ordersFrom ? closedMsg() : '';
+  }
+  setInterval(syncSend, 30000);
   function refreshLink() {
     $('#shipPick').setAttribute('href', waLink(message(['Entrega: Pasar a buscar'].concat(pagoLines()))));
     $('#shipSend').setAttribute('href', waLink(message(['Entrega: A domicilio', 'Dirección: ' + state.address.trim()].concat(pagoLines()), ENVIO)));
@@ -1698,8 +1716,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     });
     dEmpty.hidden = c > 0; dExtra.hidden = c === 0; dList.hidden = c === 0;
     dTotal.textContent = money(tot);
-    dSend.classList.toggle('is-disabled', c === 0);
-    dSend.setAttribute('aria-disabled', c === 0 ? 'true' : 'false');
+    syncSend();
     refreshLink();
     if (focusInfo) {
       var f = dList.querySelector('[data-id="' + focusInfo.id.replace(/"/g, '') + '"][data-d="' + focusInfo.d + '"]');
@@ -1830,6 +1847,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   fNotes.addEventListener('input', function () { state.notes = fNotes.value; save(); refreshLink(); });
   dSend.addEventListener('click', function () {
     if (!count()) { toast('Agrega algo del menú primero'); return; }
+    syncSend();
+    if (ordersFrom) { toast(closedMsg()); return; }
     if (!state.name.trim()) { fieldErr(fName, '#fNameErr', true); return; }
     $('#shipAddr').hidden = true;
     setPago(null);
