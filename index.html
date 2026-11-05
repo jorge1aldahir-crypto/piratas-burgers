@@ -600,7 +600,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .ask-sum { margin: 0 0 12px; color: var(--paper-dim); font-size: 15px; line-height: 1.35; }
 .ship-closed { margin: 0 0 18px; padding: 12px 14px; border-radius: 15px; background: var(--paper-ink); color: var(--paper); font-size: 15px; font-weight: 600; line-height: 1.35; }
 .ship-err { margin: -8px 0 14px; }
-.ship-cash { margin-bottom: 16px; }
 .ship-note { margin: -4px 0 16px; }
 .ship-opts { display: grid; gap: 10px; }
 .ship-addr { margin-top: 20px; }
@@ -1305,10 +1304,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <button type="button" class="opt" role="radio" aria-checked="false" data-label="Transferencia">Transferencia</button>
     </div>
     <p class="field-err ship-err" id="shipPagoErr" hidden>Elige cómo vas a pagar.</p>
-    <div class="field ship-cash" id="shipCash" hidden>
-      <label for="fPaga">¿Con cuánto pagas? <small>(opcional, para llevar cambio)</small></label>
-      <input id="fPaga" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej. 500">
-    </div>
     <p class="ask-sum ship-note" id="shipTransfer" hidden>Te pasamos los datos para transferir por WhatsApp.</p>
     <div class="ship-opts">
       <span class="opts-lbl">Entrega</span>
@@ -1642,10 +1637,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   /* ---------- cart ---------- */
   var KEY = 'piratas-pedido-v1';
   var ENVIO = 35;
-  var pago = '', pagaCon = '';
-  function pagoLines() {
-    return pago ? ['Pago: ' + pago + (pagaCon ? ' · Paga con ' + money(+pagaCon) : '')] : [];
-  }
+  var pago = '';
+  function pagoLines() { return pago ? ['Pago: ' + pago] : []; }
   var TOPPINGS = ['Catsup', 'Jalapeños', 'Pepinillos', 'Habanero', 'Chipotle'];
   var state = { items: [], tops: [], name: '', notes: '', address: '' };
   try {
@@ -1865,12 +1858,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   fAddr.addEventListener('input', function () { state.address = fAddr.value; fieldErr(fAddr, '#fAddrErr', false); save(); refreshLink(); });
   ship.addEventListener('click', function (e) { if (e.target === ship) ship.close(); });
   $('#shipClose').addEventListener('click', function () { ship.close(); });
-  var pagoOpts = $$('.opt', $('#shipPago')), fPaga = $('#fPaga');
+  var pagoOpts = $$('.opt', $('#shipPago'));
   function setPago(o) {
     pago = o ? o.getAttribute('data-label') : '';
-    pagaCon = ''; fPaga.value = '';
     pagoOpts.forEach(function (p) { p.setAttribute('aria-checked', p === o ? 'true' : 'false'); });
-    $('#shipCash').hidden = pago !== 'Efectivo';
     $('#shipTransfer').hidden = pago !== 'Transferencia';
     $('#shipPagoErr').hidden = true;
     refreshLink();
@@ -1883,11 +1874,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     return true;
   }
   pagoOpts.forEach(function (o) { o.addEventListener('click', function () { setPago(o); }); });
-  fPaga.addEventListener('input', function () {
-    fPaga.value = fPaga.value.replace(/\D/g, '');
-    pagaCon = fPaga.value;
-    refreshLink();
-  });
   $('#shipPick').addEventListener('click', function (e) { if (!faltaPago(e)) ship.close(); });
   $('#shipHome').addEventListener('click', function () {
     $('#shipAddr').hidden = false;
