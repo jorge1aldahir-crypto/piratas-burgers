@@ -10,7 +10,13 @@
 <meta property="og:title" content="Piratas Burgers · Smash burgers en Campeche">
 <meta property="og:description" content="Smash burgers, hotdogs y boneless hechos al momento. Pide por WhatsApp: 981 170 1290.">
 <meta property="og:locale" content="es_MX">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://piratas-burgers.pages.dev/">
+<meta property="og:image" content="https://piratas-burgers.pages.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Piratas Burgers: smash burgers en Campeche">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://piratas-burgers.pages.dev/og.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23E0020F'/%3E%3Cpath d='M28 12 L80 15 L78 60 L57 61 L56 88 L31 90 Z' fill='%23fff' stroke='%23000' stroke-width='6' stroke-linejoin='round'/%3E%3Cg transform='translate(53 37)'%3E%3Cpath d='M-11 1C-11-8-6-12 0-12S11-8 11 1C11 5 9 6.5 7.5 7.5V11H-7.5V7.5C-9 6.5-11 5-11 1Z'/%3E%3Ccircle cx='-4.6' cy='0' r='3.3' fill='%23fff'/%3E%3Ccircle cx='4.6' cy='0' r='3.3' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -591,6 +597,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .ask-head .d-close { flex: none; }
 .ask-foot { position: sticky; bottom: 0; margin: 6px -24px -24px; padding: 14px 24px 20px; border-top: 2px solid var(--paper-ink); background: var(--paper-2); }
 .ask-sum { margin: 0 0 12px; color: var(--paper-dim); font-size: 15px; line-height: 1.35; }
+.ship-closed { margin: 0 0 18px; padding: 12px 14px; border-radius: 15px; background: var(--paper-ink); color: var(--paper); font-size: 15px; font-weight: 600; line-height: 1.35; }
+.ship-err { margin: -8px 0 14px; }
+.ship-cash { margin-bottom: 16px; }
+.ship-note { margin: -4px 0 16px; }
 .ship-opts { display: grid; gap: 10px; }
 .ship-addr { margin-top: 20px; }
 .ship-total { margin: 12px 0 0; color: var(--paper-ink); font-weight: 700; }
@@ -1286,7 +1296,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <h2 id="shipTitle">¿Cómo quieres tu pedido?</h2>
       <button class="d-close" type="button" id="shipClose" aria-label="Cancelar"><svg class="i"><use href="#ic-x"/></svg></button>
     </div>
+    <p class="ship-closed" id="shipClosed" role="status" hidden></p>
+    <div class="opts" id="shipPago" role="radiogroup" aria-label="Forma de pago">
+      <span class="opts-lbl">Forma de pago</span>
+      <button type="button" class="opt" role="radio" aria-checked="false" data-label="Efectivo">Efectivo</button>
+      <button type="button" class="opt" role="radio" aria-checked="false" data-label="Transferencia">Transferencia</button>
+    </div>
+    <p class="field-err ship-err" id="shipPagoErr" hidden>Elige cómo vas a pagar.</p>
+    <div class="field ship-cash" id="shipCash" hidden>
+      <label for="fPaga">¿Con cuánto pagas? <small>(opcional, para llevar cambio)</small></label>
+      <input id="fPaga" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej. 500">
+    </div>
+    <p class="ask-sum ship-note" id="shipTransfer" hidden>Te pasamos los datos para transferir por WhatsApp.</p>
     <div class="ship-opts">
+      <span class="opts-lbl">Entrega</span>
       <a class="btn btn-ink btn-block" id="shipPick" href="https://wa.me/529811701290"><span>Pasar a buscar</span></a>
       <button class="btn btn-ink btn-block" id="shipHome" type="button"><span>A domicilio +$35</span></button>
     </div>
@@ -1506,6 +1529,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   /* ---------- open / closed status ---------- */
   var SCHEDULE = { 0: [1110, 1380], 1: [1140, 1410], 2: [1140, 1410], 3: [1140, 1410], 4: [1140, 1410], 5: [1140, 1440], 6: [1140, 1440] };
   var DAYS = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  var shopClosed = false;
   function fmt(m) {
     var h = Math.floor(m / 60) % 24, mm = m % 60, suf = h >= 12 ? 'p.m.' : 'a.m.';
     var h12 = h % 12 === 0 ? 12 : h % 12;
@@ -1521,6 +1545,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     try {
       var t = nowMX(), s = SCHEDULE[t.day], open = t.mins >= s[0] && t.mins < s[1];
       var long, short, state, sub, tide = 0;
+      shopClosed = false;
       if (open) {
         long = 'Abierto ahora · hasta las ' + fmt(s[1]); short = 'Abierto ahora';
         state = 'Abierto ahora'; sub = 'Cerramos en ' + dur(s[1] - t.mins) + ' · ' + fmt(s[1]);
@@ -1533,6 +1558,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         long = 'Cerrado · abrimos mañana a las ' + fmt(n[0]); short = 'Abrimos mañana';
         state = 'Cerrado'; sub = 'Abrimos mañana a las ' + fmt(n[0]);
       }
+      if (!open) shopClosed = long;
       $$('.js-status').forEach(function (el) { el.classList.toggle('open', open); el.classList.toggle('closed', !open); });
       $$('.js-status-text').forEach(function (el) { el.textContent = el.hasAttribute('data-short') ? short : long; });
       var live = $('#live');
@@ -1608,6 +1634,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   /* ---------- cart ---------- */
   var KEY = 'piratas-pedido-v1';
   var ENVIO = 35;
+  var pago = '', pagaCon = '';
+  function pagoLines() {
+    return pago ? ['Pago: ' + pago + (pagaCon ? ' · Paga con ' + money(+pagaCon) : '')] : [];
+  }
   var TOPPINGS = ['Catsup', 'Jalapeños', 'Pepinillos', 'Habanero', 'Chipotle'];
   var state = { items: [], tops: [], name: '', notes: '', address: '' };
   try {
@@ -1642,8 +1672,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   var dList = $('#dList'), dEmpty = $('#dEmpty'), dExtra = $('#dExtra'), dTotal = $('#dTotal'), dSend = $('#dSend');
 
   function refreshLink() {
-    $('#shipPick').setAttribute('href', waLink(message(['Entrega: Pasar a buscar'])));
-    $('#shipSend').setAttribute('href', waLink(message(['Entrega: A domicilio', 'Dirección: ' + state.address.trim()], ENVIO)));
+    $('#shipPick').setAttribute('href', waLink(message(['Entrega: Pasar a buscar'].concat(pagoLines()))));
+    $('#shipSend').setAttribute('href', waLink(message(['Entrega: A domicilio', 'Dirección: ' + state.address.trim()].concat(pagoLines()), ENVIO)));
   }
   function render(focusInfo) {
     var c = count(), tot = total();
@@ -1802,6 +1832,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     if (!count()) { toast('Agrega algo del menú primero'); return; }
     if (!state.name.trim()) { fieldErr(fName, '#fNameErr', true); return; }
     $('#shipAddr').hidden = true;
+    setPago(null);
+    $('#shipClosed').hidden = !shopClosed;
+    $('#shipClosed').textContent = shopClosed ? shopClosed + ' Puedes enviar tu pedido y te confirmamos al abrir.' : '';
     $('#shipTotal').textContent = 'Envío a domicilio: ' + money(ENVIO) + ' · Total: ' + money(total() + ENVIO);
     refreshLink();
     ship.showModal();
@@ -1813,9 +1846,37 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   fAddr.addEventListener('input', function () { state.address = fAddr.value; fieldErr(fAddr, '#fAddrErr', false); save(); refreshLink(); });
   ship.addEventListener('click', function (e) { if (e.target === ship) ship.close(); });
   $('#shipClose').addEventListener('click', function () { ship.close(); });
-  $('#shipPick').addEventListener('click', function () { ship.close(); });
-  $('#shipHome').addEventListener('click', function () { $('#shipAddr').hidden = false; fAddr.focus(); });
+  var pagoOpts = $$('.opt', $('#shipPago')), fPaga = $('#fPaga');
+  function setPago(o) {
+    pago = o ? o.getAttribute('data-label') : '';
+    pagaCon = ''; fPaga.value = '';
+    pagoOpts.forEach(function (p) { p.setAttribute('aria-checked', p === o ? 'true' : 'false'); });
+    $('#shipCash').hidden = pago !== 'Efectivo';
+    $('#shipTransfer').hidden = pago !== 'Transferencia';
+    $('#shipPagoErr').hidden = true;
+    refreshLink();
+  }
+  function faltaPago(e) {
+    if (pago) return false;
+    e.preventDefault();
+    $('#shipPagoErr').hidden = false;
+    pagoOpts[0].focus();
+    return true;
+  }
+  pagoOpts.forEach(function (o) { o.addEventListener('click', function () { setPago(o); }); });
+  fPaga.addEventListener('input', function () {
+    fPaga.value = fPaga.value.replace(/\D/g, '');
+    pagaCon = fPaga.value;
+    refreshLink();
+  });
+  $('#shipPick').addEventListener('click', function (e) { if (!faltaPago(e)) ship.close(); });
+  $('#shipHome').addEventListener('click', function () {
+    $('#shipAddr').hidden = false;
+    fAddr.focus({ preventScroll: true });
+    $('#shipAddr').scrollIntoView({ block: 'nearest' });
+  });
   $('#shipSend').addEventListener('click', function (e) {
+    if (faltaPago(e)) return;
     if (!state.address.trim()) { e.preventDefault(); fieldErr(fAddr, '#fAddrErr', true); return; }
     ship.close();
   });
