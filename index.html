@@ -1532,7 +1532,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   var DAYS = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
   var ORDER_LEAD = 20; // minutos antes de abrir en que ya se reciben pedidos
   var shopClosed = false, ordersFrom = false;
-  var PRUEBAS = true; // TEMPORAL: true = permite enviar pedidos fuera de horario. Regresar a false al terminar las pruebas.
+  var PRUEBAS = false; // true = permite enviar pedidos fuera de horario (solo para pruebas)
   function fmt(m) {
     var h = Math.floor(m / 60) % 24, mm = m % 60, suf = h >= 12 ? 'p.m.' : 'a.m.';
     var h12 = h % 12 === 0 ? 12 : h % 12;
