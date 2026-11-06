@@ -601,6 +601,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .ship-closed { margin: 0 0 18px; padding: 12px 14px; border-radius: 15px; background: var(--paper-ink); color: var(--paper); font-size: 15px; font-weight: 600; line-height: 1.35; }
 .ship-err { margin: -8px 0 14px; }
 .ship-note { margin: -4px 0 16px; }
+.ship-legal { margin: 16px 0 0; font-size: 13px; line-height: 1.45; color: var(--paper-dim); text-align: center; }
+.ship-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
 .ship-opts { display: grid; gap: 10px; }
 .ship-addr { margin-top: 20px; }
 .ship-total { margin: 12px 0 0; color: var(--paper-ink); font-weight: 700; }
@@ -1318,6 +1320,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <p class="ask-sum ship-total" id="shipTotal"></p>
       <a class="btn btn-red btn-block" id="shipSend" href="https://wa.me/529811701290"><svg class="i"><use href="#ic-wa"/></svg><span>Enviar por WhatsApp</span></a>
     </div>
+    <p class="ship-legal">Al enviar tu pedido aceptas nuestro <a href="privacidad.html" target="_blank" rel="noopener">aviso de privacidad</a>.</p>
   </div>
 </dialog>
 
