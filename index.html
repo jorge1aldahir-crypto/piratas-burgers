@@ -1532,6 +1532,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   var DAYS = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
   var ORDER_LEAD = 20; // minutos antes de abrir en que ya se reciben pedidos
   var shopClosed = false, ordersFrom = false;
+  var PRUEBAS = true; // TEMPORAL: true = permite enviar pedidos fuera de horario. Regresar a false al terminar las pruebas.
   function fmt(m) {
     var h = Math.floor(m / 60) % 24, mm = m % 60, suf = h >= 12 ? 'p.m.' : 'a.m.';
     var h12 = h % 12 === 0 ? 12 : h % 12;
@@ -1564,7 +1565,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         var today = t.mins < s[0], nextOpen = today ? s[0] : SCHEDULE[(t.day + 1) % 7][0];
         var wait = today ? s[0] - t.mins : 1440 - t.mins + nextOpen;
         shopClosed = long;
-        if (wait > ORDER_LEAD) ordersFrom = fmt(nextOpen - ORDER_LEAD);
+        if (wait > ORDER_LEAD && !PRUEBAS) ordersFrom = fmt(nextOpen - ORDER_LEAD);
       }
       $$('.js-status').forEach(function (el) { el.classList.toggle('open', open); el.classList.toggle('closed', !open); });
       $$('.js-status-text').forEach(function (el) { el.textContent = el.hasAttribute('data-short') ? short : long; });
